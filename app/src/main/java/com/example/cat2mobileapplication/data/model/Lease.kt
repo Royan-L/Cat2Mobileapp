@@ -1,9 +1,13 @@
 package com.example.cat2mobileapplication.data.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Entity(tableName = "leases")
 data class Lease(
+    @PrimaryKey
     val id: String,
     val propertyId: String,
     val propertyTitle: String,

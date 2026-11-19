@@ -1,14 +1,27 @@
 package com.example.cat2mobileapplication.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.cat2mobileapplication.data.model.*
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.cat2mobileapplication.RealEstateApplication
+import com.example.cat2mobileapplication.data.model.Lease
+import com.example.cat2mobileapplication.data.model.PaymentStatus
+import com.example.cat2mobileapplication.data.model.Property
+import com.example.cat2mobileapplication.data.model.RentPayment
+import com.example.cat2mobileapplication.data.model.Tenant
 import com.example.cat2mobileapplication.data.repository.RealEstateRepository
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class RealEstateViewModel(
-    private val repository: RealEstateRepository = RealEstateRepository()
+    private val repository: RealEstateRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -87,37 +100,79 @@ class RealEstateViewModel(
 
     fun addProperty(property: Property) {
         viewModelScope.launch {
-            repository.addProperty(property)
+            try {
+                _isLoading.value = true
+                repository.addProperty(property)
+                _isLoading.value = false
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _errorMessage.value = e.localizedMessage ?: "Failed to add property"
+            }
         }
     }
 
     fun updateProperty(property: Property) {
         viewModelScope.launch {
-            repository.updateProperty(property)
+            try {
+                _isLoading.value = true
+                repository.updateProperty(property)
+                _isLoading.value = false
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _errorMessage.value = e.localizedMessage ?: "Failed to update property"
+            }
         }
     }
 
     fun deleteProperty(propertyId: String) {
         viewModelScope.launch {
-            repository.deleteProperty(propertyId)
+            try {
+                _isLoading.value = true
+                repository.deleteProperty(propertyId)
+                _isLoading.value = false
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _errorMessage.value = e.localizedMessage ?: "Failed to delete property"
+            }
         }
     }
 
     fun addTenant(tenant: Tenant) {
         viewModelScope.launch {
-            repository.addTenant(tenant)
+            try {
+                _isLoading.value = true
+                repository.addTenant(tenant)
+                _isLoading.value = false
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _errorMessage.value = e.localizedMessage ?: "Failed to add tenant"
+            }
         }
     }
 
     fun updateTenant(tenant: Tenant) {
         viewModelScope.launch {
-            repository.updateTenant(tenant)
+            try {
+                _isLoading.value = true
+                repository.updateTenant(tenant)
+                _isLoading.value = false
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _errorMessage.value = e.localizedMessage ?: "Failed to update tenant"
+            }
         }
     }
 
     fun deleteTenant(tenantId: String) {
         viewModelScope.launch {
-            repository.deleteTenant(tenantId)
+            try {
+                _isLoading.value = true
+                repository.deleteTenant(tenantId)
+                _isLoading.value = false
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _errorMessage.value = e.localizedMessage ?: "Failed to delete tenant"
+            }
         }
     }
 
@@ -162,5 +217,14 @@ class RealEstateViewModel(
 
     fun clearError() {
         _errorMessage.value = null
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as RealEstateApplication)
+                RealEstateViewModel(application.repository)
+            }
+        }
     }
 }

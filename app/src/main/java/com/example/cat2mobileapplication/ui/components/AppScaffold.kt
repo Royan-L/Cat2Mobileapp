@@ -15,7 +15,7 @@ import com.example.cat2mobileapplication.ui.screens.*
 import com.example.cat2mobileapplication.ui.viewmodel.RealEstateViewModel
 
 @Composable
-fun AppScaffold(viewModel: RealEstateViewModel = viewModel()) {
+fun AppScaffold(viewModel: RealEstateViewModel = viewModel(factory = RealEstateViewModel.Factory)) {
     val navigationState = rememberNavigationState(
         startRoute = DashboardRoute,
         topLevelRoutes = setOf(
