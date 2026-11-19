@@ -5,6 +5,7 @@ import com.example.cat2mobileapplication.data.local.dao.PropertyDao
 import com.example.cat2mobileapplication.data.local.dao.RentPaymentDao
 import com.example.cat2mobileapplication.data.local.dao.TenantDao
 import com.example.cat2mobileapplication.data.model.Lease
+import com.example.cat2mobileapplication.data.model.LeaseStatus
 import com.example.cat2mobileapplication.data.model.PaymentStatus
 import com.example.cat2mobileapplication.data.model.Property
 import com.example.cat2mobileapplication.data.model.PropertyStatus
@@ -19,12 +20,15 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -161,4 +165,153 @@ class RealEstateViewModelTest {
         val list3 = repository.tenants.first()
         assertTrue(list3.isEmpty())
     }
+
+    @Test
+    fun testViewModelPropertyManagement() = runTest {
+        val collectJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.properties.collect {}
+        }
+
+        val prop = Property(
+            id = "p_test_vm",
+            title = "Ocean View Villa",
+            address = "500 Shoreline Ave",
+            type = PropertyType.HOUSE,
+            monthlyRent = 4500.0,
+            bedrooms = 4,
+            bathrooms = 3,
+            status = PropertyStatus.AVAILABLE
+        )
+
+        viewModel.addProperty(prop)
+        assertEquals(1, viewModel.properties.value.size)
+        assertEquals("Ocean View Villa", viewModel.properties.value[0].title)
+
+        val updatedProp = prop.copy(title = "Ocean View Luxury Villa", status = PropertyStatus.RENTED)
+        viewModel.updateProperty(updatedProp)
+        assertEquals("Ocean View Luxury Villa", viewModel.properties.value[0].title)
+        assertEquals(PropertyStatus.RENTED, viewModel.properties.value[0].status)
+
+        viewModel.deleteProperty("p_test_vm")
+        assertTrue(viewModel.properties.value.isEmpty())
+        collectJob.cancel()
+    }
+
+    @Test
+    fun testViewModelTenantManagement() = runTest {
+        val collectJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.tenants.collect {}
+        }
+
+        val tenant = Tenant(
+            id = "t_test_vm",
+            name = "Alex Mercer",
+            email = "alex@example.com",
+            phone = "+1 555-0199",
+            propertyId = "p1",
+            leaseStart = "2025-01-01",
+            leaseEnd = "2026-01-01",
+            status = TenantStatus.ACTIVE
+        )
+
+        viewModel.addTenant(tenant)
+        assertEquals(1, viewModel.tenants.value.size)
+
+        val updatedTenant = tenant.copy(status = TenantStatus.FORMER)
+        viewModel.updateTenant(updatedTenant)
+        assertEquals(TenantStatus.FORMER, viewModel.tenants.value[0].status)
+
+        viewModel.deleteTenant("t_test_vm")
+        assertTrue(viewModel.tenants.value.isEmpty())
+        collectJob.cancel()
+    }
+
+    @Test
+    fun testViewModelLeaseManagement() = runTest {
+        val collectJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.leases.collect {}
+        }
+
+        val lease = Lease(
+            id = "l_test_vm",
+            propertyId = "p1",
+            propertyTitle = "Sunset Heights Apt 4B",
+            tenantId = "t1",
+            tenantName = "Alice Johnson",
+            startDate = "2025-01-01",
+            endDate = "2026-01-01",
+            monthlyRent = 2400.0,
+            securityDeposit = 2400.0,
+            status = LeaseStatus.ACTIVE
+        )
+
+        viewModel.addLease(lease)
+        assertEquals(1, viewModel.leases.value.size)
+
+        val updatedLease = lease.copy(status = LeaseStatus.EXPIRED)
+        viewModel.updateLease(updatedLease)
+        assertEquals(LeaseStatus.EXPIRED, viewModel.leases.value[0].status)
+
+        viewModel.deleteLease("l_test_vm")
+        assertTrue(viewModel.leases.value.isEmpty())
+        collectJob.cancel()
+    }
+
+    @Test
+    fun testViewModelRentPaymentManagement() = runTest {
+        val collectJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.rents.collect {}
+        }
+
+        val rent = RentPayment(
+            id = "r_test_vm",
+            tenantId = "t1",
+            tenantName = "Alice Johnson",
+            propertyTitle = "Sunset Heights Apt 4B",
+            amount = 2400.0,
+            dueDate = "2025-04-01",
+            paidDate = null,
+            status = PaymentStatus.PENDING
+        )
+
+        viewModel.addRentPayment(rent)
+        assertEquals(1, viewModel.rents.value.size)
+
+        viewModel.markRentPaid("r_test_vm", "2025-04-01")
+        assertEquals(PaymentStatus.PAID, viewModel.rents.value[0].status)
+        assertEquals("2025-04-01", viewModel.rents.value[0].paidDate)
+
+        viewModel.updateRentStatus("r_test_vm", PaymentStatus.OVERDUE, null)
+        assertEquals(PaymentStatus.OVERDUE, viewModel.rents.value[0].status)
+
+        viewModel.deleteRentPayment("r_test_vm")
+        assertTrue(viewModel.rents.value.isEmpty())
+        collectJob.cancel()
+    }
+
+    @Test
+    fun testViewModelIsEmptyState() = runTest {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.properties.collect {} }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.tenants.collect {} }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.leases.collect {} }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.rents.collect {} }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.isEmpty.collect {} }
+
+        assertTrue(viewModel.isEmpty.value)
+
+        viewModel.addProperty(
+            Property("p1", "Title", "Address", PropertyType.APARTMENT, 1000.0, 1, 1, PropertyStatus.AVAILABLE)
+        )
+
+        assertFalse(viewModel.isEmpty.value)
+    }
+
+    @Test
+    fun testErrorHandlingAndClear() = runTest {
+        assertNull(viewModel.errorMessage.value)
+
+        viewModel.clearError()
+        assertNull(viewModel.errorMessage.value)
+    }
 }
+
