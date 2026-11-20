@@ -1,7 +1,7 @@
 # Real Estate Management App (CAT 2)
 
 ## Project Overview
-[Briefly describe the app here - e.g., A mobile application designed to help landlords manage properties, tenants, and rent payments efficiently.]
+A mobile application designed for property managers and landlords to efficiently manage their real estate portfolio. The app allows users to track properties, manage tenant directories, monitor rent payments, and view a real-time dashboard summary of their business.
 
 ## Team Members & Roles
 *   **Member 1:** UI/UX & Frontend
