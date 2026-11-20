@@ -341,47 +341,41 @@ fun AddTenantDialog(
                 )
             }
         },
-      
-confirmButton = {
-    Button(
-        onClick = {
-            when {
-                !InputValidator.isValidName(name) -> {
-                    errorText = "Name must contain at least 2 characters"
+        confirmButton = {
+            Button(
+                onClick = {
+                    when {
+                        !InputValidator.isValidName(name) -> {
+                            errorText = "Name must contain at least 2 characters"
+                        }
+                        !InputValidator.isValidEmail(email) -> {
+                            errorText = "Please enter a valid email address"
+                        }
+                        !InputValidator.isValidPhone(phone) -> {
+                            errorText = "Please enter a valid phone number"
+                        }
+                        !InputValidator.isValidDateRange(leaseStart, leaseEnd) -> {
+                            errorText = "Please enter valid lease dates. End date cannot be before start date."
+                        }
+                        else -> {
+                            val tenant = Tenant(
+                                id = "t_${UUID.randomUUID().toString().take(6)}",
+                                name = name.trim(),
+                                email = email.trim(),
+                                phone = phone.trim(),
+                                propertyId = properties.firstOrNull()?.id,
+                                leaseStart = leaseStart.trim(),
+                                leaseEnd = leaseEnd.trim(),
+                                status = status
+                            )
+                            onAdd(tenant)
+                        }
+                    }
                 }
-
-                !InputValidator.isValidEmail(email) -> {
-                    errorText = "Please enter a valid email address"
-                }
-
-                !InputValidator.isValidPhone(phone) -> {
-                    errorText = "Please enter a valid phone number"
-                }
-
-                !InputValidator.isValidDateRange(leaseStart, leaseEnd) -> {
-                    errorText = "Please enter valid lease dates. End date cannot be before start date."
-                }
-
-                else -> {
-                    val tenant = Tenant(
-                        id = "t_${UUID.randomUUID().toString().take(6)}",
-                        name = name.trim(),
-                        email = email.trim(),
-                        phone = phone.trim(),
-                        propertyId = properties.firstOrNull()?.id,
-                        leaseStart = leaseStart.trim(),
-                        leaseEnd = leaseEnd.trim(),
-                        status = status
-                    )
-
-                    onAdd(tenant)
-                }
+            ) {
+                Text("Add")
             }
-        }
-    ) {
-        Text("Add")
-    }
-},
+        },
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
