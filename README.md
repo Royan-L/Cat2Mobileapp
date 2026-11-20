@@ -1,33 +1,56 @@
 # Real Estate Management App (CAT 2)
 
 ## Project Overview
-A mobile application designed for property managers and landlords to efficiently manage their real estate portfolio. The app allows users to track properties, manage tenant directories, monitor rent payments, and view a real-time dashboard summary of their business.
+An Android app (Kotlin, Jetpack Compose) for property managers and landlords. It replaces paper and spreadsheet records with one mobile app for properties, tenants, rent payments and leases, with a live dashboard summary.
+
+## Features
+*   **Dashboard:** properties, occupancy, paid revenue and active leases at a glance
+*   **Properties:** add, view, edit status and delete; search and filter by status
+*   **Tenants:** add, view, change status and delete; search by name, email or phone
+*   **Rent Collection:** track Paid, Pending and Overdue payments; "Mark Paid" action
+*   **Leases:** add, update, delete; shows terms and security deposits
+*   Loading, empty and error states on list screens
+*   Data stored locally and kept after the app is closed
 
 ## Team Members & Roles
 *   **Member 1:** UI/UX & Frontend
 *   **Member 2:** Database & CRUD
 *   **Member 3:** Application Architecture & Kotlin Logic
 *   **Member 4:** Navigation, API & Background Processing
-*   **Member 5 (You):** Testing, Validation & GitHub Collaboration
+*   **Member 5 (Beryl Orutwa):** Testing, Validation & GitHub Collaboration
 
 ## Architecture Overview
-The application follows the MVVM (Model-View-ViewModel) architecture:
-*   **UI Layer:** Jetpack Compose (Screens and Components)
-*   **ViewModel Layer:** Manages UI state and business logic.
-*   **Repository Layer:** Handles data operations.
-*   **Data Source:** Room Database for local persistence.
+MVVM: **UI (Compose) → ViewModel → Repository → DAO → Room (SQLite)**
+
+*   **UI Layer:** Compose screens in `ui/screens`; display data and collect input
+*   **ViewModel Layer:** `RealEstateViewModel` exposes `StateFlow` state, including loading and error messages
+*   **Repository Layer:** `RealEstateRepository` is the single access point to the DAOs
+*   **Data Source:** Room database `real_estate_database` with four tables: properties, tenants, leases, rent_payments
+*   **Navigation:** typed routes; detail screens receive an ID
 
 ## Input Validation & Error Handling
-As part of the QA process, input validation was implemented using the `InputValidator` utility. The application prevents users from submitting invalid data by checking:
-*   **Name:** Must be at least 2 characters.
-*   **Email:** Must match standard email formats (using `Patterns.EMAIL_ADDRESS`).
-*   **Phone:** Must be at least 10 digits.
-*   **Date Ranges:** Lease end dates cannot be before start dates.
+The `InputValidator` utility checks input before saving. Invalid input shows an error message and nothing is saved.
+*   **Name:** at least 2 characters
+*   **Email:** matches `Patterns.EMAIL_ADDRESS`
+*   **Phone:** at least 10 characters; digits, `+` or `-` only
+*   **Amount:** a number greater than 0
+*   **Dates:** both start and end required
+*   Database errors are caught in the ViewModel and shown to the user
 
-## Testing Evidence
-*   **Validation Testing:** Verified that the "Add Tenant" form correctly displays error messages when fields are left blank or formatted incorrectly.
-*   **Data Persistence:** Verified that tenant data remains in the application after closing and reopening it.
-*   **Navigation Testing:** Verified smooth transitions between screens and back navigation.
+## Testing
+*   **Unit tests:** `RealEstateViewModelTest` covers property, tenant, lease and rent management, the empty state and error handling (run with `./gradlew test`)
+*   **Instrumented tests:** `DatabaseCrudInstrumentedTest` covers create, read, update and delete for all four tables using an in-memory Room database (run with `./gradlew connectedAndroidTest`)
+*   **Manual tests:** Add Tenant validation messages, data persistence after closing and reopening, navigation and back navigation
+
+## Release
+v1.0.0 with installable debug APK: https://github.com/Royan-L/Cat2Mobileapp/releases/tag/v1.0.0
+
+## Known Limitations and Future Improvements
+*   Initial sample data is inserted on first launch for demonstration
+*   Validation is applied on the Add Tenant form; extend to other forms
+*   No user login
+*   API integration and WorkManager rent reminders are planned, not yet implemented
+*   Proper database migrations (currently the database is rebuilt on schema change)
 
 ## How to Run
 1. Clone this repository.
