@@ -17,7 +17,7 @@ An Android app (Kotlin, Jetpack Compose) for property managers and landlords. It
 *   **Member 2:** Database & CRUD
 *   **Member 3:** Application Architecture & Kotlin Logic
 *   **Member 4:** Navigation, API & Background Processing
-*   **Member 5 (Beryl Orutwa):** Testing, Validation & GitHub Collaboration
+*   **Member 5 :** Testing, Validation & GitHub Collaboration
 
 ## Architecture Overview
 MVVM: **UI (Compose) → ViewModel → Repository → DAO → Room (SQLite)**
