@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.cat2mobileapplication.data.model.Tenant
 import com.example.cat2mobileapplication.data.model.TenantStatus
 import com.example.cat2mobileapplication.ui.viewmodel.RealEstateViewModel
+import com.example.cat2mobileapplication.ui.validation.InputValidator
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -340,13 +341,28 @@ fun AddTenantDialog(
                 )
             }
         },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (name.isBlank() || email.isBlank() || phone.isBlank()) {
-                        errorText = "Please fill in required fields"
-                        return@Button
-                    }
+      
+confirmButton = {
+    Button(
+        onClick = {
+            when {
+                !InputValidator.isValidName(name) -> {
+                    errorText = "Name must contain at least 2 characters"
+                }
+
+                !InputValidator.isValidEmail(email) -> {
+                    errorText = "Please enter a valid email address"
+                }
+
+                !InputValidator.isValidPhone(phone) -> {
+                    errorText = "Please enter a valid phone number"
+                }
+
+                !InputValidator.isValidDateRange(leaseStart, leaseEnd) -> {
+                    errorText = "Please enter valid lease dates. End date cannot be before start date."
+                }
+
+                else -> {
                     val tenant = Tenant(
                         id = "t_${UUID.randomUUID().toString().take(6)}",
                         name = name.trim(),
@@ -357,12 +373,15 @@ fun AddTenantDialog(
                         leaseEnd = leaseEnd.trim(),
                         status = status
                     )
+
                     onAdd(tenant)
                 }
-            ) {
-                Text("Add")
             }
-        },
+        }
+    ) {
+        Text("Add")
+    }
+},
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
